@@ -1,9 +1,12 @@
+import "./ModalForm.css";
+
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import axios from "axios";
+import { useMutation } from "@tanstack/react-query";
 
+import { FetchOrganizations, SignIn } from "../../../../features/api/AuthService";
 import { useAuthStore } from "../../../../features/useAuthStore";
 
 const emailSchema = z.object({
@@ -22,6 +25,7 @@ const ModalForm = ({ onLoginSuccess }) => {
 	const [organizations, setOrganizations] = useState([]);
 	const [email, setEmail] = useState("");
 
+	const login = useAuthStore((state) => state.login);
 
 	const {
 		register: registerEmail,
@@ -38,38 +42,41 @@ const ModalForm = ({ onLoginSuccess }) => {
 	} = useForm({
 		resolver: zodResolver(passwordSchema),
 	});
-	// STEP 1
-	const handleEmailSubmit = async (data) => {
 
-		setServerError("");
-
-		try {
-			const response = await axios.post("https://europe-west3-egosys-dev.cloudfunctions.net/SignInOrgs",
-				{ email: data.email }
-			);
-
-			const orgs = response.data?.data?.orgs ?? [];
-
-			if (orgs.length === 0) {
+	const { mutate: getOrganizations, isPending: isOrgLoading } = useMutation({
+		mutationFn: FetchOrganizations,
+		onSuccess: (orgs) => {
+			if (!orgs.length) {
 				setServerError("You do not have access to any organization");
 				return;
 			}
-
 			setOrganizations(orgs);
-			setEmail(data.email);
 			setStep(2);
-		} catch (error) {
+		},
+		onError: () => {
 			setServerError("Something went wrong. Try again later.");
-		}
+		},
+	});
+
+	const { mutate: doLogin, isPending: isLoginLoading } = useMutation({
+		mutationFn: SignIn,
+		onSuccess: () => {
+			login(email);
+			onLoginSuccess?.();
+		},
+		onError: (error) => {
+			setServerError(error?.response?.data?.error || "Login failed. Try again.");
+		},
+	});
+
+	const handleEmailSubmit = (data) => {
+		setServerError("");
+		setEmail(data.email);
+		getOrganizations(data.email);
 	};
 
-	// STEP 2
-
-	const login = useAuthStore((state) => state.login);
-
-	const handlePasswordSubmit = async (data) => {
+	const handlePasswordSubmit = (data) => {
 		setServerError("");
-
 		const selectedOrgId = organizations.length === 1 ? organizations[0].id : data.orgId;
 
 		if (organizations.length > 1 && !selectedOrgId) {
@@ -77,27 +84,7 @@ const ModalForm = ({ onLoginSuccess }) => {
 			return;
 		}
 
-		try {
-			const response = await axios.post(
-				"https://europe-west3-egosys-dev.cloudfunctions.net/SignIn",
-				{
-					email,
-					password: data.password,
-					orgId: selectedOrgId,
-				}
-			);
-
-			console.log("Success!", response.data);
-
-			login(email);
-			onLoginSuccess();
-			onLoginSuccess?.();
-		} catch (error) {
-			setServerError(
-				error?.response?.data?.error || "Login failed. Try again."
-			);
-		}
-
+		doLogin({ email, password: data.password, orgId: selectedOrgId });
 	};
 
 	return (
@@ -109,11 +96,11 @@ const ModalForm = ({ onLoginSuccess }) => {
 					</div>
 				</div>
 				<div className="auth__main-block">
-					{serverError && (
+					{serverError &&
 						<div className="auth__server-error" style={{ color: "red", marginBottom: "1rem" }}>
 							{serverError}
 						</div>
-					)}
+					}
 
 					{step === 1 && (
 						<>
@@ -128,9 +115,9 @@ const ModalForm = ({ onLoginSuccess }) => {
 								</div>
 								<div className="auth__input-wrapper">
 									<input {...registerEmail("email")} className="auth__input" id="auth__input-email" type="text" placeholder="user.name@gmail.com" />
-									{emailErrors.email && (<span className="auth__span-error" style={{ color: "red" }}>{emailErrors.email.message}</span>)}
+									{emailErrors.email && <span className="auth__span-error" style={{ color: "red" }}>{emailErrors.email.message}</span>}
 								</div>
-								<button className="auth__btn" type="submit">continue to password</button>
+								<button className="auth__btn" type="submit" disabled={isOrgLoading}>{isOrgLoading ? "Loading..." : "Continue to password"}</button>
 							</form>
 						</>
 					)}
@@ -145,7 +132,7 @@ const ModalForm = ({ onLoginSuccess }) => {
 									<div className="auth__input-wrapper">
 										<select
 											{...registerPassword("orgId")}
-											className="auth__input"
+											className="auth__input auth__input-select"
 										>
 											{organizations.map((org) => (
 												<option key={org.id} value={org.id}>
@@ -153,14 +140,6 @@ const ModalForm = ({ onLoginSuccess }) => {
 												</option>
 											))}
 										</select>
-										{passwordErrors.orgId && (
-											<span
-												className="auth__span-error"
-												style={{ color: "red" }}
-											>
-												{passwordErrors.orgId.message}
-											</span>
-										)}
 									</div>
 								)}
 
@@ -168,22 +147,22 @@ const ModalForm = ({ onLoginSuccess }) => {
 								<div className="auth__input-wrapper">
 									<input
 										{...registerPassword("password")}
-										className="auth__input"
+										className="auth__input auth__input-step2"
 										type="password"
 										placeholder="Your password"
 									/>
-									{passwordErrors.password && (
+									{passwordErrors.password &&
 										<span
 											className="auth__span-error"
 											style={{ color: "red" }}
 										>
 											{passwordErrors.password.message}
 										</span>
-									)}
+									}
 								</div>
 
-								<button className="auth__btn" type="submit">
-									Log In
+								<button className="auth__btn" type="submit" disabled={isOrgLoading}>
+									{isLoginLoading ? "Loggin in..." : "Log in"}
 								</button>
 
 							</form>

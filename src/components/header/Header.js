@@ -1,3 +1,5 @@
+import "./Header.css";
+
 import HeaderLogo from "./header-logo/HeaderLogo";
 import HeaderBtn from "./header-btn/HeaderBtn";
 

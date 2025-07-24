@@ -1,4 +1,5 @@
-import { useState } from "react";
+import "./Main.css";
+
 import MainBtn from "./main-btn/MainBtn";
 import MainModal from "./main-modal/MainModal";
 

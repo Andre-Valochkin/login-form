@@ -1,0 +1,100 @@
+.ant-modal-content {
+	padding: 0 !important;
+	overflow: hidden;
+
+}
+
+.authHeader {
+	padding: 20px 24px;
+	background-color: #000;
+}
+
+.authHeader__logo-wrapper {
+	height: 24px;
+}
+
+.auth__main-block {
+	padding: 32px 24px;
+	text-align: center;
+}
+
+.auth__server-error {
+	padding: 24px;
+	background-color: #ff00001c;
+	border-radius: 8px;
+	border: 1px solid #ff00007c;
+	font-weight: 600;
+	font-size: 18px;
+	text-align: center;
+}
+
+.auth__form {
+	margin-top: 50px;
+	text-align: left;
+	display: flex;
+	flex-direction: column;
+
+}
+
+.auth__lable-wrapper {
+	margin-bottom: 15px;
+
+}
+
+.auth__lable-span {
+	font-size: 14px;
+}
+
+.auth__input {
+	width: 95.3%;
+	font-size: 16px;
+	padding: 10px;
+	border-radius: 8px;
+	border: 1px solid #00000031;
+	margin-bottom: 30px;
+	transition: border 0.3s ease, box-shadow 0.3s ease;
+}
+
+.auth__input:hover {
+	border: 1px solid#00a2ff;
+}
+
+.auth__input:focus {
+	box-shadow: 0 0 2px 1px #00a2ff5b;
+	border: 1px solid#00a2ff;
+	outline: none;
+}
+
+.auth__input::placeholder {
+	text-overflow: ellipsis;
+	font-size: 16px;
+}
+
+.auth__input-wrapper {
+	position: relative;
+}
+
+.auth__span-error {
+	position: absolute;
+	top: 45px;
+}
+
+.auth__btn {
+	width: 100%;
+	padding: 12px;
+	background-color: #1677ff;
+	cursor: pointer;
+	color: #fff;
+	font-size: 20px;
+	border-radius: 8px;
+	border: none;
+	transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.auth__btn:hover {
+	background-color: #1677ff9d;
+}
+
+.auth__input-select {
+	width: 100%;
+}
